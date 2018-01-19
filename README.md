@@ -109,7 +109,8 @@ FastLEDshowESP32();
 
 
 
-
+Here are the performances:
+![alt text](https://github.com/hpwit/fastled-esp32-16PINS/blob/master/Perf.png?raw=true)
 
 
 
