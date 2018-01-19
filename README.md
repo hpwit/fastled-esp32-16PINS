@@ -67,7 +67,7 @@ xTaskNotifyGive(userTaskHandle);
 }
 
 }
-Then add code to initialize the task in your setup() function:
+//Then add code to initialize the task in your setup() function:
 
 void setup(){
 // -- Create the FastLED show task
@@ -81,7 +81,7 @@ FastLED.addLeds<WS2811_PORTA,NUM_STRIPS>(leds, NUM_LEDS_PER_STRIP);
 }
 
 
-Finally, call the new show function in place of regular show:
+//Finally, call the new show function in place of regular show:
 
 
 void loop(){
