@@ -33,6 +33,7 @@ CRGB leds[NUM_LEDS];
 static TaskHandle_t FastLEDshowTaskHandle = 0;
 static TaskHandle_t userTaskHandle = 0;
 
+
 void FastLEDshowESP32()
 {
 if (userTaskHandle == 0) {
@@ -45,7 +46,7 @@ userTaskHandle = xTaskGetCurrentTaskHandle();
 xTaskNotifyGive(FastLEDshowTaskHandle);
 
 // -- Wait to be notified that it's done
-ulTaskNotifyTake(pdTRUE, xMaxBlockTime);
+ulTaskNotifyTake(pdTRUE,portMAX_DELAY);
 userTaskHandle = 0;
 }
 }
@@ -56,7 +57,7 @@ const TickType_t xMaxBlockTime = pdMS_TO_TICKS( 500 );
 // -- Run forever...
 for(;;) {
 // -- Wait for the trigger
-ulTaskNotifyTake(pdTRUE, xMaxBlockTime);
+ulTaskNotifyTake(pdTRUE,portMAX_DELAY);
 
 // -- Do the show (synchronously)
 FastLED.show();
@@ -64,6 +65,7 @@ FastLED.show();
 // -- Notify the calling task
 xTaskNotifyGive(userTaskHandle);
 }
+
 }
 Then add code to initialize the task in your setup() function:
 
