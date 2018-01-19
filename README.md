@@ -1,8 +1,117 @@
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/FastLED/public)
 -------------------------------------------------
-08/16/2017 UPDATE: standard FastLED now includes esp32 support as of version 3.1.6! Get it at https://github.com/FastLED/FastLED, happy lighting!
+18/01/2018 UPDATE: standard FastLED now includes esp32 support as of version 3.1.8! Get it at https://github.com/FastLED/FastLED, happy lighting!
 -------------------------------------------------
-This repo now contains experimental support for parallel data output on ESP32; currently (08/16/17) hardcoded for 8 outputs on pins 12-19
+This repo now contains experimental support for parallel data output on ESP32; currently (01/18/18) hardcoded out put for pins 12-19,0,2,3,4,5,21,22,23  based from https://github.com/eshkrab/FastLED-esp32
+
+The strip 1 will be wired to pin 12
+The strip 2 will be wired to pin 13
+....
+The strip 16 will be wired to pin 23
+
+For esp32 I Suggest you use the code done by Sam Guyer https://github.com/samguyer  it avoids flickering
+
+
+
+
+// -- The core to run FastLED.show()
+#define FASTLED_ALLOW_INTERRUPTS 0
+#include "FastLED.h"
+FASTLED_USING_NAMESPACE
+#define FASTLED_SHOW_CORE 0
+
+
+
+#define NUM_STRIPS 11  //from 1 to 16
+#define NUM_LEDS_PER_STRIP  200
+
+#define NUM_LEDS NUM_STRIPS * NUM_LEDS_PER_STRIP
+CRGB leds[NUM_LEDS];
+
+
+// -- Task handles for use in the notifications
+static TaskHandle_t FastLEDshowTaskHandle = 0;
+static TaskHandle_t userTaskHandle = 0;
+
+void FastLEDshowESP32()
+{
+if (userTaskHandle == 0) {
+const TickType_t xMaxBlockTime = pdMS_TO_TICKS( 200 );
+// -- Store the handle of the current task, so that the show task can
+//    notify it when it's done
+userTaskHandle = xTaskGetCurrentTaskHandle();
+
+// -- Trigger the show task
+xTaskNotifyGive(FastLEDshowTaskHandle);
+
+// -- Wait to be notified that it's done
+ulTaskNotifyTake(pdTRUE, xMaxBlockTime);
+userTaskHandle = 0;
+}
+}
+
+void FastLEDshowTask(void *pvParameters)
+{
+const TickType_t xMaxBlockTime = pdMS_TO_TICKS( 500 );
+// -- Run forever...
+for(;;) {
+// -- Wait for the trigger
+ulTaskNotifyTake(pdTRUE, xMaxBlockTime);
+
+// -- Do the show (synchronously)
+FastLED.show();
+
+// -- Notify the calling task
+xTaskNotifyGive(userTaskHandle);
+}
+}
+Then add code to initialize the task in your setup() function:
+
+void setup(){
+// -- Create the FastLED show task
+xTaskCreatePinnedToCore(FastLEDshowTask, "FastLEDshowTask", 2048, NULL, 2, &FastLEDshowTaskHandle, FASTLED_SHOW_CORE);
+
+//-- Initiate the Leds.
+FastLED.addLeds<WS2811_PORTA,NUM_STRIPS>(leds, NUM_LEDS_PER_STRIP);
+
+
+
+}
+
+
+Finally, call the new show function in place of regular show:
+
+
+void loop(){
+
+static uint8_t hue = 0;
+for(int i = 0; i < NUM_STRIPS; i++) {
+for(int j = 0; j < NUM_LEDS_PER_STRIP; j++) {
+leds[(i*NUM_LEDS_PER_STRIP) + j] = CHSV((32*i) + hue+j,192,255);
+}
+}
+
+// Set the first n leds on each strip to show which strip it is
+for(int i = 0; i < NUM_STRIPS; i++) {
+for(int j = 0; j <= i; j++) {
+leds[(i*NUM_LEDS_PER_STRIP) + j] = CRGB::Red;
+}
+}
+
+hue++;
+
+// send the 'leds' array out to the actual LED strip
+FastLEDshowESP32();
+// FastLED.show();
+}
+
+
+
+
+
+
+
+
 -------------------------------------------------
 IMPORTANT NOTE: For AVR based systems, avr-gcc 4.8.x is supported and tested.  This means Arduino 1.6.5 and later.
 
