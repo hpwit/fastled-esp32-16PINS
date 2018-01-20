@@ -126,6 +126,7 @@ template<EOrder RGB_ORDER> class DMXSERIAL : public DMXSerialController<RGB_ORDE
 enum EBlockChipsets {
 #ifdef PORTA_FIRST_PIN
 	WS2811_PORTA,
+    WS2812B_PORTA,
 	WS2813_PORTA,
 	WS2811_400_PORTA,
 	TM1803_PORTA,
@@ -405,15 +406,16 @@ public:
 	/// @tparam NUM_LANES - how many parallel lanes of output to write
 	/// @tparam RGB_ORDER - the rgb ordering for the leds (e.g. what order red, green, and blue data is written out in)
 	/// @returns a reference to the added controller
-	template<EBlockChipsets CHIPSET, int NUM_LANES, EOrder RGB_ORDER>
+	template<EBlockChipsets CHIPSET, int NUM_LANES, EOrder RGB_ORDER,uint32_t PORT_MASK>
 	static CLEDController &addLeds(struct CRGB *data, int nLedsOrOffset, int nLedsIfOffset = 0) {
 		switch(CHIPSET) {
 		#ifdef PORTA_FIRST_PIN
-				case WS2811_PORTA: return addLeds(new InlineBlockClocklessController<NUM_LANES, PORTA_FIRST_PIN, NS(320), NS(320), NS(640), RGB_ORDER>(), data, nLedsOrOffset, nLedsIfOffset);
-				case WS2811_400_PORTA: return addLeds(new InlineBlockClocklessController<NUM_LANES, PORTA_FIRST_PIN, NS(800), NS(800), NS(900), RGB_ORDER>(), data, nLedsOrOffset, nLedsIfOffset);
-        case WS2813_PORTA: return addLeds(new InlineBlockClocklessController<NUM_LANES, PORTA_FIRST_PIN, NS(320), NS(320), NS(640), RGB_ORDER, 0, false, 300>(), data, nLedsOrOffset, nLedsIfOffset);
-				case TM1803_PORTA: return addLeds(new InlineBlockClocklessController<NUM_LANES, PORTA_FIRST_PIN, NS(700), NS(1100), NS(700), RGB_ORDER>(), data, nLedsOrOffset, nLedsIfOffset);
-				case UCS1903_PORTA: return addLeds(new InlineBlockClocklessController<NUM_LANES, PORTA_FIRST_PIN, NS(500), NS(1500), NS(500), RGB_ORDER>(), data, nLedsOrOffset, nLedsIfOffset);
+				case WS2811_PORTA: return addLeds(new InlineBlockClocklessController<NUM_LANES, PORTA_FIRST_PIN, NS(320), NS(320), NS(640), RGB_ORDER,PORT_MASK>(), data, nLedsOrOffset, nLedsIfOffset);
+				case WS2811_400_PORTA: return addLeds(new InlineBlockClocklessController<NUM_LANES, PORTA_FIRST_PIN, NS(800), NS(800), NS(900), RGB_ORDER,PORT_MASK>(), data, nLedsOrOffset, nLedsIfOffset);
+                case WS2812B_PORTA: return addLeds(new InlineBlockClocklessController<NUM_LANES, PORTA_FIRST_PIN, NS(250), NS(625), NS(375), RGB_ORDER,PORT_MASK>(), data, nLedsOrOffset, nLedsIfOffset);
+        case WS2813_PORTA: return addLeds(new InlineBlockClocklessController<NUM_LANES, PORTA_FIRST_PIN, NS(320), NS(320), NS(640), RGB_ORDER,PORT_MASK, 0, false, 300>(), data, nLedsOrOffset, nLedsIfOffset);
+				case TM1803_PORTA: return addLeds(new InlineBlockClocklessController<NUM_LANES, PORTA_FIRST_PIN, NS(700), NS(1100), NS(700), RGB_ORDER,PORT_MASK>(), data, nLedsOrOffset, nLedsIfOffset);
+				case UCS1903_PORTA: return addLeds(new InlineBlockClocklessController<NUM_LANES, PORTA_FIRST_PIN, NS(500), NS(1500), NS(500), RGB_ORDER,PORT_MASK>(), data, nLedsOrOffset, nLedsIfOffset);
 		#endif
 		#ifdef PORTB_FIRST_PIN
 				case WS2811_PORTB: return addLeds(new InlineBlockClocklessController<NUM_LANES, PORTB_FIRST_PIN, NS(320), NS(320), NS(640), RGB_ORDER>(), data, nLedsOrOffset, nLedsIfOffset);
@@ -446,9 +448,9 @@ public:
 		}
 	}
 
-	template<EBlockChipsets CHIPSET, int NUM_LANES>
+	template<EBlockChipsets CHIPSET, int NUM_LANES,uint32_t PORT_MASK>
 	static CLEDController &addLeds(struct CRGB *data, int nLedsOrOffset, int nLedsIfOffset = 0) {
-		return addLeds<CHIPSET,NUM_LANES,GRB>(data,nLedsOrOffset,nLedsIfOffset);
+		return addLeds<CHIPSET,NUM_LANES,GRB,PORT_MASK>(data,nLedsOrOffset,nLedsIfOffset);
 	}
 	//@}
 #endif

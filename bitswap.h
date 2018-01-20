@@ -169,6 +169,9 @@ __attribute__((always_inline)) inline void slowswap(unsigned char *A, unsigned c
 }
 
 void transpose8x1_noinline(unsigned char *A, unsigned char *B);
+void transpose16x1_noinline(unsigned char *A, uint16_t *B) ;
+uint32_t fixbit(uint32_t bit,uint32_t MASK,uint32_t LANES );
+uint32_t createMask(char *tab,int size);
 
 /// Simplified form of bits rotating function.  Based on code found here - http://www.hackersdelight.org/hdcodetxt/transpose8.c.txt - rotating
 /// data into LSB for a faster write (the code using this data can happily walk the array backwards)

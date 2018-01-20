@@ -2,7 +2,12 @@
 -------------------------------------------------
 18/01/2018 UPDATE: standard FastLED now includes esp32 support as of version 3.1.8! Get it at https://github.com/FastLED/FastLED, happy lighting!
 -------------------------------------------------
-This repo now contains experimental support for parallel data output on ESP32; currently (01/18/18) hardcoded out put for pins 12-19,0,2,3,4,5,21,22,23  based from https://github.com/eshkrab/FastLED-esp32
+This repo now contains experimental support for parallel data output on ESP32; currently (01/19/18) hardcoded out put for pins 12-19,0,2,3,4,5,21,22,23
+OR YOU CAN USE IT WITH THE PINS YOU WANT !!!! STILL UP TO 16
+
+
+
+based from https://github.com/eshkrab/FastLED-esp32
 
 The strip 1 will be wired to pin 12
 The strip 2 will be wired to pin 13
@@ -25,6 +30,17 @@ FASTLED_USING_NAMESPACE
 #define NUM_STRIPS 11  //from 1 to 16
 #define NUM_LEDS_PER_STRIP  200
 
+
+
+#define PORT_MASK 0b0000110111000010100000000110111
+
+/*THIS IS THE NEW POINT THIS MASK REFER TO THE PIN
+O(lowest bit) TO 31 (significant bit)
+if you want 5 STRIPS on pins 2 6 12 16 19 the MASK will look like THIS
+0b1001000100000100010
+set NUM_STRIPS to 11
+
+*/
 #define NUM_LEDS NUM_STRIPS * NUM_LEDS_PER_STRIP
 CRGB leds[NUM_LEDS];
 
@@ -74,7 +90,23 @@ void setup(){
 xTaskCreatePinnedToCore(FastLEDshowTask, "FastLEDshowTask", 2048, NULL, 2, &FastLEDshowTaskHandle, FASTLED_SHOW_CORE);
 
 //-- Initiate the Leds.
-FastLED.addLeds<WS2811_PORTA,NUM_STRIPS>(leds, NUM_LEDS_PER_STRIP);
+
+/*
+two choices use the PORT_MASK or use the hardcoded
+FOR Harcoded just PORT_MASK=0
+it's a bit faster because i have hardcoded the way the bit are encoded
+when you use the PORT_MASK it's a bit slower bit still good
+you can use two setups WS2811_PORTA (less artifacts with hardcoded pins)
+or WS2812B_PORTA a new one a bit slower i have better result for non hardcoded
+up to you to test the different combination.
+*/
+
+FastLED.addLeds<WS2811_PORTA,NUM_STRIPS,PORT_MASK>(leds, NUM_LEDS_PER_STRIP); //
+
+//OR
+
+
+FastLED.addLeds<WS2812B_PORTA,NUM_STRIPS,PORT_MASK>(leds, NUM_LEDS_PER_STRIP); //
 
 
 
